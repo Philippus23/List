@@ -67,10 +67,10 @@ public class List<ContentType> {
 
 	/* ----------- Ende der privaten inneren Klasse -------------- */
 
-	private ListNode head;
-	private ListNode tail;
-	private ListNode current;
-	private ListNode previous;
+	public ListNode head;
+	public ListNode tail;
+	public ListNode current;
+
 
 	/**
 	 * Eine leere Schlange wird erzeugt.
@@ -80,6 +80,7 @@ public class List<ContentType> {
 	public List() {
 		head = null;
 		tail = null;
+		current = null;
 	}
 
 	/**
@@ -99,7 +100,7 @@ public class List<ContentType> {
 	 * @return true, falls die Schlange leer ist, sonst false
 	 */
 	public boolean hasAccess() {
-		return current == null;
+		return current != null;
 	}
 
 	/**
@@ -107,23 +108,53 @@ public class List<ContentType> {
 	 * Falls die Schlange leer ist, wird sie nicht veraendert.
 	 */
 	public void next() {
-		if (!this.isEmpty() || this.hasAccess()) {
+		if (this.hasAccess()) {
 			current = current.getNext();
-			previous = current;
 		}
 	}
+
 	public void toFirst(){
 		if(!this.isEmpty()){
-			current= current.head();
+			current = head;
 		}
 	}
+
 	public void toLast(){
 		if(!this.isEmpty()){
-			current = current.tail();
+			current = tail;
 		}
 	}
 
 
+	public ContentType getContent() {
+		return (this.hasAccess()) ? current.getContent() : null;
+	}
+
+	public void setContent(ContentType pContent) {
+		if (pContent != null && this.hasAccess()) {
+			current.setContent(pContent);
+		}
+	}
+
+	public void insert(ContentType pContent) {
+     	if (pContent != null) {
+			ListNode neu = new ListNode(pContent);
+      	if (this.hasAccess()) {
+         	if (current == head) {
+					neu.setNext(head);
+           		head = neu;
+         	} else {
+					ListNode previous = this.getPrevious(current);
+           		neu.setNext(previous.getNext());
+           		previous.setNext(neu);
+         	}
+
+       	} else if (this.isEmpty()) {
+           	head = neu;
+				tail = neu;
+       	}
+     	}
+   }
 	/**
 	 * Das Objekt pContentType wird an die Schlange angehaengt.
 	 * Falls pContentType gleich null ist, bleibt die Schlange unveraendert.
@@ -133,15 +164,31 @@ public class List<ContentType> {
 	 */
 	public void append(ContentType pContent) {
 		if (pContent != null) {
-			ListNode newNode = new ListNode(pContent);
-			if (this.isEmpty()) {
-				head = newNode;
-				tail = newNode;
+			ListNode neu = new ListNode(pContent);
+			if (!this.isEmpty()) {
+				tail.setNext(neu);
+				tail = neu;
 			} else {
-				tail.setNext(newNode);
-				tail = newNode;
+				head = neu;
+				tail = neu;
 			}
 		}
+	}
+
+	public void concat(List<ContentType> pList) {
+   	if (pList != null && pList != this && !pList.isEmpty()) {
+      if (!this.isEmpty()) {
+			tail.setNext(pList.head);
+      	tail = pList.tail;
+      } else {
+			head = pList.head;
+         tail = pList.tail;
+      }
+
+      pList.current = null;
+		pList.head = null;
+		pList.tail = null;
+     	}
 	}
 
 	/**
@@ -149,28 +196,40 @@ public class List<ContentType> {
 	 * Falls die Schlange leer ist, wird sie nicht veraendert.
 	 */
 	public void remove() {
-		if (!this.isEmpty() || ) {
-			head = head.getNext();
-			if (this.isEmpty()) {
-				head = null;
-				tail = null;
+		if (this.hasAccess() && !this.isEmpty()) {
+			if (current != head) {
+				ListNode previous = this.getPrevious(current);
+         	if (current == last) {
+         		tail = previous;
+         	}
+         	previous.setNext(current.getNext());
+        	} else {
+				head = head.getNext();
 			}
-		}
+
+      	ListNode nxt = current.getNext();
+      	current.setContent(null);
+      	current.setNext(null);
+      	current = nxt;
+
+      	if (this.isEmpty()) {
+         	tail = null;
+      	}
+      }
 	}
 
-	/**
-	 * Die Anfrage liefert das erste Objekt der Schlange.
-	 * Die Schlange bleibt unveraendert.
-	 * Falls die Schlange leer ist, wird null zurueckgegeben.
-	 *
-	 * @return das erste Objekt der Schlange vom Typ ContentType oder null,
-	 *         falls die Schlange leer ist
-	 */
-	public ContentType front() {
-		if (this.isEmpty()) {
-			return null;
-		} else {
-			return head.getContent();
-		}
-	}
+	private ListNode getPrevious(ListNode pNode) {
+		ListNode ret = null;
+		if (pNode != first && pNode != null && !this.isEmpty()) {
+       	ListNode tmp = first;
+       	while (tmp != null && tmp.getNextNode() != pNode) {
+         	tmp = tmp.getNextNode();
+       	}
+       	ret = tmp;
+     	}
+
+		return ret;
+   }
+
+
 }
